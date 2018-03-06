@@ -7,8 +7,17 @@ import time
 import tool
 
 class xicidaili(object):
-
+    #===========================================================================
+    # '''
+    # 西刺代理网站免费ip爬取
+    # writeLog: 写入运行记录到数据库
+    # writeIP: 写入代理Ip到数据库
+    # extractIp: 提取网页代码中的代理Ip
+    # start: 运行脚本
+    # '''
+    #===========================================================================
     def __init__(self):
+        self.scriptName = "西刺代理"
         self.aimsUrlList = ['http://www.xicidaili.com/nn/', 'http://www.xicidaili.com/nt/', 'http://www.xicidaili.com/wn/', 'http://www.xicidaili.com/wt/']
         self.proxyList = []
         self.download = tool.WebDownload()
@@ -17,8 +26,22 @@ class xicidaili(object):
         self.failure = 0
         self.repeat = 0
         self.crawlQuantity = 0
+        self.operatingTime = ''
 
-    def writeDatabase(self):
+
+    def writeLog(self):
+        # 写入sql语句
+        write_sql = """
+        insert into scripting_log (script_name, operating_time, crawl_quantity, success, failure, already) values (
+        "{script_name}", "{operating_time}", "{crawl_quantity}", "{success}", "{failure}", "{already}")
+        """
+
+        # 插入日志信息
+        self.my.executeOperation(write_sql.format(script_name=self.scriptName, operating_time=self.operatingTime, end_time=self.endTime,
+                                                  crawl_quantity=self.crawlQuantity, success=self.success, failure=self.failure, already=self.repeat))
+
+
+    def writeIP(self):
         # 写入sql语句
         write_sql = """
         insert into agent_pool (ip, port, type, verification_time) VALUES ("{ip}", "{port}", "{ipType}", "{verificationTime}")
@@ -51,7 +74,6 @@ class xicidaili(object):
             else:
                 self.repeat += 1
                 continue
-
 
 
     def extractIp(self, url):
@@ -120,20 +142,15 @@ class xicidaili(object):
 
 
     def start(self):
-        # 名称
-        scriptName = "http://www.xicidaili.com/"
-        # 操作时间
-        operatingTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        # 获取开始时间
+        self.operatingTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
         for url in self.aimsUrlList:
             self.extractIp(url)
-        self.writeDatabase()
+        self.writeIP()
 
-        print("操作网站：{scriptName}".format(scriptName=scriptName))
-        print("操作时间：{operatingTime}".format(operatingTime=operatingTime))
-        print("操作结果：爬取{crawlQuantity}个代理，入库成功{success}个代理，入库失败{failure}个代理, ，入库重复{repeat}个代理".format(
-            crawlQuantity=self.crawlQuantity, success=self.success, failure=self.failure, repeat=self.repeat))
-
+        # 写入运行日志
+        self.writeLog()
 
 
 if __name__ == '__main__':
