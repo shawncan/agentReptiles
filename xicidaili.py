@@ -37,7 +37,7 @@ class xicidaili(object):
         """
 
         # 插入日志信息
-        self.my.executeOperation(write_sql.format(script_name=self.scriptName, operating_time=self.operatingTime, end_time=self.endTime,
+        self.my.executeOperation(write_sql.format(script_name=self.scriptName, operating_time=self.operatingTime,
                                                   crawl_quantity=self.crawlQuantity, success=self.success, failure=self.failure, already=self.repeat))
 
 
@@ -107,7 +107,6 @@ class xicidaili(object):
             if hour >= endHour :
                 continue
 
-
             # 获取bar所属div标签下的内容
             filterContent = re.findall(r'<div class="bar" .*>', str(info))
             # 获取连接速度
@@ -120,7 +119,6 @@ class xicidaili(object):
             # 判断连接时间大于1秒跳过
             if float(connect_time) > 1:
                 continue
-
 
             # ip地址
             ip = trContent[0][4:-5]
@@ -142,7 +140,7 @@ class xicidaili(object):
 
 
     def start(self):
-        # 获取开始时间
+        # 获取操作时间
         self.operatingTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
         for url in self.aimsUrlList:
