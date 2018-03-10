@@ -10,10 +10,7 @@ class xicidaili(object):
     #===========================================================================
     # '''
     # 西刺代理网站免费ip爬取
-    # writeLog: 写入运行记录到数据库
-    # writeIP: 写入代理Ip到数据库
-    # extractIp: 提取网页代码中的代理Ip
-    # start: 运行脚本
+    # writeLog: 写入运行记录到数据库, writeIP: 写入代理Ip到数据库, extractIp: 提取网页代码中的代理Ip, start: 运行脚本
     # '''
     #===========================================================================
     def __init__(self):
@@ -26,18 +23,19 @@ class xicidaili(object):
         self.failure = 0
         self.repeat = 0
         self.crawlQuantity = 0
+        self.operationDate = ''
         self.operatingTime = ''
 
 
     def writeLog(self):
         # 写入sql语句
         write_sql = """
-        insert into scripting_log (script_name, operating_time, crawl_quantity, success, failure, already) values (
-        "{script_name}", "{operating_time}", "{crawl_quantity}", "{success}", "{failure}", "{already}")
+        insert into scripting_log (script_name, operation_date, operating_time, crawl_quantity, success, failure, already) values (
+        "{script_name}", "{operation_date}", "{operating_time}", "{crawl_quantity}", "{success}", "{failure}", "{already}")
         """
 
         # 插入日志信息
-        self.my.executeOperation(write_sql.format(script_name=self.scriptName, operating_time=self.operatingTime,
+        self.my.executeOperation(write_sql.format(script_name=self.scriptName, operation_date=self.operationDate, operating_time=self.operatingTime,
                                                   crawl_quantity=self.crawlQuantity, success=self.success, failure=self.failure, already=self.repeat))
 
 
@@ -140,8 +138,11 @@ class xicidaili(object):
 
 
     def start(self):
+        # 获取操作日期
+        self.operationDate = time.strftime("%Y-%m-%d", time.localtime())
+
         # 获取操作时间
-        self.operatingTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        self.operatingTime = time.strftime("%H:%M:%S", time.localtime())
 
         for url in self.aimsUrlList:
             self.extractIp(url)
