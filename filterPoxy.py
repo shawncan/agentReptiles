@@ -13,7 +13,7 @@ class filterPoxy(object):
     # '''
     #===========================================================================
     def __init__(self):
-        self.scriptName = "代理Ip有效性检查"
+        self.scriptName = "Ip有效性检查"
         self.operationDate = ''
         self.operatingTime = ''
         self.success = 0
@@ -44,6 +44,7 @@ class filterPoxy(object):
 
 
     def verification(self, poxyIp):
+        status = True
         ip = poxyIp.split(":")[0]
         port = poxyIp.split(":")[1]
 
@@ -61,14 +62,18 @@ class filterPoxy(object):
             r = requests.get(filterUrl, headers=headers, proxies=proxies, timeout=30)
             r.raise_for_status()
 
-            # 记录成功数
+            # 记录可用数
             self.success += 1
         except Exception:
-            # 记录失败数
+            # 记录不可用数
             self.failure += 1
 
             # 删除失败代理Ip信息
             self.deleteData(ip, port)
+
+            status = False
+
+        return status
 
 
     def extractData(self):
