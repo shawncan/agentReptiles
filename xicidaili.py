@@ -5,6 +5,7 @@ import re
 from bs4 import BeautifulSoup
 import time
 import tool
+import filterPoxy
 
 class xicidaili(object):
     #===========================================================================
@@ -17,14 +18,15 @@ class xicidaili(object):
         self.scriptName = "西刺代理"
         self.aimsUrlList = ['http://www.xicidaili.com/nn/', 'http://www.xicidaili.com/nt/', 'http://www.xicidaili.com/wn/', 'http://www.xicidaili.com/wt/']
         self.proxyList = []
-        self.download = tool.WebDownload()
-        self.my = tool.MYSQL()
         self.success = 0
         self.failure = 0
         self.repeat = 0
         self.crawlQuantity = 0
         self.operationDate = ''
         self.operatingTime = ''
+        self.download = tool.WebDownload()
+        self.my = tool.MYSQL()
+        self.examine = filterPoxy.filterPoxy()
 
 
     def writeLog(self):
@@ -62,13 +64,7 @@ class xicidaili(object):
 
             # 插入ip信息
             if not searchResult:
-                writeState = self.my.executeOperation(write_sql.format(ip=ip, port=port, ipType=ipType, verificationTime=verificationTime))
-
-                # 记录插入情况
-                if writeState == 0:
-                    self.success += 1
-                else:
-                    self.failure += 1
+                self.my.executeOperation(write_sql.format(ip=ip, port=port, ipType=ipType, verificationTime=verificationTime))
             else:
                 self.repeat += 1
                 continue
@@ -87,9 +83,14 @@ class xicidaili(object):
         table = soup.find('table')
         # 提取tr标签下内容，信息所在标签
         tr = table.find_all('tr')
+        print(len(tr))
 
         for info in tr[1:]:
+            # 代理字典
             proxyData = {'ip': '', '端口': '', '类型': '', '验证时间': '', }
+
+            # 记录爬取数
+            self.crawlQuantity += 1
 
             # 获取td标签下内容
             trContent = re.findall(r'<td>.*</td>', str(info))
@@ -118,13 +119,29 @@ class xicidaili(object):
             if float(connect_time) > 1:
                 continue
 
-            # ip地址
+            # ip
             ip = trContent[0][4:-5]
             # 端口
             port = trContent[1][4:-5]
             # 类型
             ipType = trContent[2][4:-5]
 
+            # 组合ip与端口
+            poxyIp = ("{ip}:{port}").format(ip=ip, port=port)
+            # 验证ip是否可用
+            ipStatus = self.examine.verification(poxyIp)
+
+            # 判断是否可用
+            # 可用: 添加ip信息至代理字典, 不可用: 跳过此循环
+            if ipStatus:
+                # 记录可用数
+                self.success += 1
+            else:
+                # 记录不可用数
+                self.failure += 1
+                continue
+
+            # 添加至代理字典
             proxyData['ip'] = ip
             proxyData['端口'] = port
             proxyData['类型'] = ipType
@@ -132,9 +149,6 @@ class xicidaili(object):
 
             # 添加代理字典到代理列表中
             self.proxyList.append(proxyData)
-
-            # 记录爬取成功数
-            self.crawlQuantity += 1
 
 
     def start(self):
@@ -144,8 +158,11 @@ class xicidaili(object):
         # 获取操作时间
         self.operatingTime = time.strftime("%H:%M:%S", time.localtime())
 
+        # 爬取ip
         for url in self.aimsUrlList:
             self.extractIp(url)
+
+        # 写入ip
         self.writeIP()
 
         # 写入运行日志
