@@ -89,9 +89,6 @@ class xicidaili(object):
             # 代理字典
             proxyData = {'ip': '', '端口': '', '类型': '', '验证时间': '', }
 
-            # 记录爬取数
-            self.crawlQuantity += 1
-
             # 获取td标签下内容
             trContent = re.findall(r'<td>.*</td>', str(info))
 
@@ -105,6 +102,9 @@ class xicidaili(object):
             # 当前小时大于等于结束小时的跳过
             if hour >= endHour :
                 continue
+
+            # 记录爬取数
+            self.crawlQuantity += 1
 
             # 获取bar所属div标签下的内容
             filterContent = re.findall(r'<div class="bar" .*>', str(info))
