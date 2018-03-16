@@ -83,7 +83,6 @@ class xicidaili(object):
         table = soup.find('table')
         # 提取tr标签下内容，信息所在标签
         tr = table.find_all('tr')
-        print(len(tr))
 
         for info in tr[1:]:
             # 代理字典
