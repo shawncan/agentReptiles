@@ -186,7 +186,6 @@ class WebDownload(Log):
             r = requests.get(url, headers=headers, timeout=20)
             r.raise_for_status()
             r.encoding = code
-            print(r.status_code)
             return r.text
         except Exception:
             logger = self.logger()
