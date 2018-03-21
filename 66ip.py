@@ -80,7 +80,7 @@ class xicidaili(object):
         startHour = endHour - 2
 
         # 获取源码并解析
-        html = self.download.proxyGetHTMLText(url, code='GB2312')
+        html = self.download.getHTMLText(url, code='GB2312')
 
         # 处理处理源码为0的情况
         if not html :
