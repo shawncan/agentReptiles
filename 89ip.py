@@ -1,25 +1,21 @@
 #!/usr/local/Cellar/python3
 # -*- coding: utf-8 -*-
-
-import re
-from bs4 import BeautifulSoup
 import time
 import tool
 import filterPoxy
-import os
-import sys
+import re
 
 
-class xicidaili(object):
+class kuaidaili(object):
     #===========================================================================
     # '''
-    # 云代理免费ip爬取
+    # 快代理免费ip爬取
     # writeLog: 写入运行记录到数据库, writeIP: 写入代理Ip到数据库, extractIp: 提取网页代码中的代理Ip, start: 运行脚本
     # '''
     #===========================================================================
     def __init__(self):
-        self.scriptName = "云代理"
-        self.aimsUrl ='http://www.ip3366.net/?stype=1&page={num}'
+        self.scriptName = "89ip"
+        self.aimsUrl ='http://www.89ip.cn/apijk/?&tqsl=1000&sxa=&sxb=&tta=&ports=&ktip=&cf=1'
         self.proxyList = []
         self.success = 0
         self.failure = 0
@@ -76,37 +72,18 @@ class xicidaili(object):
 
     def extractIp(self, url):
         # 获取源码并解析
-        html = self.download.getHTMLText(url, code='GB2312')
+        html = self.download.getHTMLText(url)
 
-        # 处理处理源码为0的情况
-        if not html :
-            scriptName = os.path.basename(__file__)
-            self.mail.agentExhaustedEmail(scriptName)
-            sys.exit(0)
+        # 获取ip列表
+        poxyIpList = re.findall(r'\d*\.\d*\.\d*\.\d*\:\d*', str(html))
 
-        soup = BeautifulSoup(html, 'html.parser')
+        # 获取ip数量
+        self.crawlQuantity = len(poxyIpList)
 
-        # 提取table标签下内容
-        table = soup.find('table', attrs={'class': 'table table-bordered table-striped'})
-        # 提取tr标签下内容
-        tr = table.find_all('tr')
-
-        for info in tr[1:]:
+        for poxyIp in poxyIpList:
             # 代理字典
             proxyData = {'ip': '', '端口': '', '类型': '', '验证时间': '', }
 
-            # 记录爬取数
-            self.crawlQuantity += 1
-
-            # 获取ip
-            ip = re.findall(r'\d*\.\d*\.\d*\.\d*', str(info))[0]
-            # 获取端口
-            port = re.findall(r'<td>\d*</td>', str(info))[0][4:-5]
-            # 类型
-            ipType = re.findall(r'<td>[A-Z]*</td>', str(info))[0][4:-5]
-
-            # 组合ip与端口
-            poxyIp = ("{ip}:{port}").format(ip=ip, port=port)
             # 验证ip是否可用
             ipStatus = self.examine.verification(poxyIp)
 
@@ -123,10 +100,15 @@ class xicidaili(object):
             # 获取ip验证时间
             verificationTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
+            # 获取ip
+            ip = poxyIp.split(":")[0]
+            # 获取端口
+            port = poxyIp.split(":")[1]
+
             # 添加至代理字典
             proxyData['ip'] = ip
             proxyData['端口'] = port
-            proxyData['类型'] = ipType
+            proxyData['类型'] = "HTTPS"
             proxyData['验证时间'] = verificationTime
 
             # 添加代理字典到代理列表中
@@ -141,8 +123,7 @@ class xicidaili(object):
         self.operatingTime = time.strftime("%H:%M:%S", time.localtime())
 
         # 爬取ip
-        for num in range(1, 11):
-            self.extractIp(self.aimsUrl.format(num=num))
+        self.extractIp(self.aimsUrl)
 
         # 写入ip
         self.writeIP()
@@ -152,5 +133,5 @@ class xicidaili(object):
 
 
 if __name__ == '__main__':
-    extract = xicidaili()
+    extract = kuaidaili()
     extract.start()
